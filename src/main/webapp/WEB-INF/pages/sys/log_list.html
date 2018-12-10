@@ -1,0 +1,161 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">日志管理</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="用户名">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-delete">删除</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+						    <th><input type="checkbox" id="checkAll">全选</th>
+							<th>用户名</th>
+							<th>操作</th>
+							<th>请求方法</th>
+							<th>请求参数</th>
+							<th>IP地址</th>
+							<th>执行时间</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+			
+					</tbody>
+				</table>
+			</div>
+			<div id="pageId" class="box-footer clearfix">
+				
+			</div>
+			<!-- /.box-body -->
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script>
+	$(function(){
+		$("#pageId").load("doPageUI.do",function(){
+			doGetObject();
+		});
+		<!-- 日志按名字查询 -->
+		$(".input-group-btn").on("click",".btn-search",doQueryObjects)
+		.on("click",".btn-delete",doDeleteObjects);
+		$("#checkAll").click(doChangeCheckAllState);
+		$("#tbodyId").on("change",".cBox",doChangeTHeadCheckBoxState);
+		
+	})
+	<!-- ajax请求发生 -->
+	function doGetObject(){
+		 var url="log/doFindPageObjects.do";
+		 var username=$("#searchNameId").val();
+		 var pageCurrent=$("#pageId").data("pageCurrent");
+		 if(!pageCurrent) pageCurrent=1;
+		 var params="pageCurrent="+pageCurrent;
+		 if(username){
+			 var params="name="+username+"&pageCurrent="+pageCurrent;
+		 } 	 
+		 $.getJSON(url,params,function(result){
+		 	doHandleResponseResult(result);
+		 });		
+	}
+	<!-- 接收服务器发送的请求 -->
+	function doHandleResponseResult(result){
+		if(result.state==1){
+			doSetTableBodyRows(result.data.records);
+			//设置页面的总页数，总记录数，当前页信息
+			doSetPagination(result.data);
+		}else{
+			alert(result.message);
+		}
+	}
+	<!-- 1.将请求响应到页面 -->
+	function doSetTableBodyRows(records){
+		var tBody=$("#tbodyId");
+		tBody.empty();
+		for(var i in records){
+			var tr=$("<tr></tr>");
+			var tds=doCreateTds(records[i]);
+			tr.append(tds);
+			tBody.append(tr);
+		}
+	}
+	<!-- 2.将请求响应到页面 -->
+	function doCreateTds(data){
+		var tds="<td><input type='checkbox' class='cBox' name='cItem' value='"+data.id+"'></td>"+
+	   	 "<td>"+data.username+"</td>"+
+	     "<td>"+data.operation+"</td>"+
+	     "<td>"+data.method+"</td>"+
+	     "<td>"+data.params+"</td>"+
+	     "<td>"+data.ip+"</td>"+
+	     "<td>"+data.time+"</td>";	   
+		return tds;
+	}
+	<!-- 按名字查询的函数 -->
+	function doQueryObjects(){
+		<!-- 按名字查时也从第一页开始查询 --> 
+		var pageCurrent=$("#pageId").data("pageCurrent",1); 
+		doGetObject();
+	}
+	<!-- 删除日志信息 -->
+	function doDeleteObjects(){
+		//1.获取选中的id值
+		var ids=doGetCheckedIds();
+		/* if(ids.length==0){
+			alert("至少选择一个");
+			return;
+		} */
+		var url="log/doDeleteObjects.do";
+		var params={"ids":ids.toString()};
+		console.log(params);
+		
+		$.post(url,params,function(result){
+			console.log(result);
+		 	if(result.state==1){
+		 		alert(result.message);
+		 		doGetObject();
+		 	}else{
+		 		alert(result.message);
+		 	}
+		 });
+	}
+	<!-- 获取选中的记录id -->
+	function doGetCheckedIds(){
+		var array=[];
+		$("#tbodyId input[name=cItem]").each(function(){
+			if($(this).prop("checked")){//if(true)才会执行下面语句，那么只有checked为真
+				array.push($(this).val());
+			}
+		});
+		return array;
+	}
+	function doChangeCheckAllState(){
+		var state=$("#checkAll").prop("checked");
+		$("tbody input[type=checkbox]").each(function(){
+			$(this).prop("checked",state);
+		})
+	}
+	function doChangeTHeadCheckBoxState(){
+		var flag=true;
+		$("#tbodyId input[type='checkbox']").each(function(){
+			flag=flag & $(this).prop("checked");
+		});
+		$("#checkAll").prop("checked",flag);
+	}
+</script>
+
+
+
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sys.dao.SysMenuDao">
+	<select id="findObjects" resultType="map">     
+          select c.*,p.name parentName  from sys_menus c left join sys_menus p on c.parentId=p.id      
+     </select>
+ 	<delete id="doDeleteObject">
+ 		delete from sys_menus where id=#{id}
+ 	</delete>
+ 	<select id="getChildCount" resultType="int">
+ 		select count(*) from sys_menus where parentId=#{id}
+ 	</select>
+ 	<select id="findZtreeMenuNodes" resultType="com.jt.common.vo.Node">
+ 		select id,parentId,name from sys_menus
+ 	</select>
+ 	<insert id="doInsertObject">
+ 		insert into sys_menus (name,url,type,sort,note,parentId,permission,
+		createdTime,modifiedTime)
+        values
+        (#{name},#{url},#{type},#{sort},#{note},#{parentId},#{permission},
+		now(),now())
+ 	</insert>
+</mapper>

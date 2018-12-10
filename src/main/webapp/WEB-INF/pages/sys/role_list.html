@@ -1,0 +1,117 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">角色管理</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="角色名">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-add">添加</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<form>
+				  <table class="table table-hover">
+					<thead>
+						<tr>
+						    <th>序号</th>
+							<th>角色名称</th>
+							<th>备注</th>
+							<th>创建时间</th>
+							<th>修改时间</th>
+							<th>创建用户</th>
+							<th>修改用户</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+					</tbody>
+				  </table>
+				</form>
+			</div>
+			<!-- /.box-body -->
+			<div id="pageId" class="box-footer clearfix">
+            </div>
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+$(function(){
+	$("#pageId").load("doPageUI.do",function(){
+		doGetObject();
+	});
+	$(".input-group").on("click",".btn-add",doLoadEditUI);
+	
+})
+function doGetObject(){
+		 var url="role/doFindPageObjects.do";
+		 var username=$("#searchNameId").val();
+		 var pageCurrent=$("#pageId").data("pageCurrent");
+		 if(!pageCurrent) pageCurrent=1;
+		 var params="pageCurrent="+pageCurrent;
+		 if(username){
+			 var params="name="+username+"&pageCurrent="+pageCurrent;
+		 } 	 
+		 $.getJSON(url,params,function(result){
+		 	doHandleResponseResult(result);
+		 });		
+	}
+<!-- 接收服务器发送的请求 -->
+function doHandleResponseResult(result){
+	if(result.state==1){
+		doSetTableBodyRows(result.data.records);
+		//设置页面的总页数，总记录数，当前页信息
+		doSetPagination(result.data);
+	}else{
+		alert(result.message);
+	}
+}
+<!-- 1.将请求响应到页面 -->
+function doSetTableBodyRows(records){
+	var tBody=$("#tbodyId");
+	tBody.empty();
+	for(var i in records){
+		var tr=$("<tr></tr>");
+		var tds=doCreateTds(records[i]);
+		tr.append(tds);
+		tBody.append(tr);
+	}
+}
+<!-- 2.将请求响应到页面 -->
+function doCreateTds(data){
+	var tds="<td><input type='checkbox' class='cBox' name='cItem' value='"+data.id+"'></td>"+
+   	 "<td>"+data.name+"</td>"+
+     "<td>"+data.note+"</td>"+
+     "<td>"+data.createdTime+"</td>"+
+     "<td>"+data.modifiedTime+"</td>"+
+     "<td>"+data.createdUser+"</td>"+
+     "<td>"+data.modifiedUser+"</td>";	   
+	return tds;
+}
+function doLoadEditUI(){
+	var url="role/doRoleEditUI.do";
+	$("#mainContentId").load(url);
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
